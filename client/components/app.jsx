@@ -21,7 +21,7 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       view: 'start',
-      stats: null,
+      stats: { milesWalked: 0, encounters: 0, timeWalked: 0 },
       pokemons: [],
       items: [],
       pokemonDetails: null,
@@ -30,7 +30,7 @@ export default class App extends React.Component {
       startLon: null,
       currLat: null,
       currLon: null,
-      currMilesWalked: null,
+      currMilesWalked: 0,
       sessionTimeWalked: 0,
       locationError: null,
       backgroundImage: null,
@@ -77,10 +77,9 @@ export default class App extends React.Component {
   componentDidMount() {
     this.getStats();
     this.getBackground();
-    if (!this.state.stats) {
-      this.setState({ stats: { milesWalked: 0, encounters: 0, timeWalked: 0 } });
-    }
     this.getStartTime();
+    this.getStartPosition();
+    this.getCurrentPosition();
   }
 
   resetState() {
@@ -203,7 +202,7 @@ export default class App extends React.Component {
       navigator.geolocation.watchPosition(
         position => {
           this.setState({ currLat: position.coords.latitude, currLon: position.coords.longitude });
-          this.calculateDistance();
+          this.calculateDistance(this.state.startLat, this.state.startLon, this.state.currLat, this.state.currLon);
         }
         , error => {
           switch (error.code) {
@@ -240,25 +239,25 @@ export default class App extends React.Component {
     distance = Math.acos(distance);
     distance = distance * 180 / Math.PI;
     distance = distance * 60 * 1.1515;
-    this.setState({ currMilesWalked: this.state.currMilesWalked + distance });
-    if (this.state.currMilesWalked > 0.3) {
-      this.setState(prevState => ({
-        stats: {
-          ...prevState.stats,
-          milesWalked: this.state.stats.milesWalked + this.state.currMilesWalked
-        },
-        currMilesWalked: 0
-      }));
-      fetch('/api/users', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(this.state.stats)
-      })
-        .then(res => res.json())
-        .then(data => process.stdout.write(data));
-    }
+    this.setState({ currMilesWalked: this.state.currMilesWalked + distance, startLat: this.state.currLat, startLon: this.state.currLon });
+    this.setState(prevState => ({
+      stats: {
+        ...prevState.stats,
+        milesWalked: this.state.stats.milesWalked + this.state.currMilesWalked
+      }
+    }));
+    const sendStats = {
+      ...this.state.stats,
+      milesWalked: this.state.stats.milesWalked.toFixed(2) * 100
+    };
+    fetch('/api/users', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(sendStats)
+    })
+      .catch(err => console.error(err));
   }
 
   attemptCatch(ball) {
@@ -444,8 +443,6 @@ export default class App extends React.Component {
           setView={this.setView}
           getItems={this.getItems}
           getPokemon={this.getPokemon}
-          getStartPosition={this.getStartPosition}
-          getCurrentPosition={this.getCurrentPosition}
         />;
         break;
       case 'home':
@@ -473,6 +470,7 @@ export default class App extends React.Component {
           timeWalked={this.state.sessionTimeWalked}
           stats={this.state.stats}
           setView={this.setView}
+          currMilesWalked={this.state.currMilesWalked}
           encounters={this.state.totalEncounters}
           timeOfDay={this.state.timeOfDay}
           backgroundImage={this.state.backgroundImage} />;
@@ -607,6 +605,7 @@ export default class App extends React.Component {
             <Footer
               view={this.state.view}
               setView={this.setView}
+              encounterType={this.state.encounterType}
               resetState={this.resetState} />
           </div>
         </div>

@@ -25,7 +25,7 @@ export default class HomePage extends React.Component {
             <div className={'stats-board'}>
               <div className="stats-text">
                 <p>MILES WALKED</p>
-                <p>{s.milesWalked}</p>
+                <p>{(s.milesWalked / 100).toFixed(2)}</p>
               </div>
               <div className="stats-text">
                 <p>POKéBOX</p>

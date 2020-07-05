@@ -16,23 +16,23 @@ app.use(express.json());
 app.get('/api/users', (req, res, next) => {
   const userId = req.session.pokefitUserId;
   const newUser = `
-            insert into  "users" ("miles_walked", "encounters", "time_walked")
+            insert into  users (miles_walked, encounters, time_walked)
                 values   (0, 0, 0)
-              returning  "user_id" as "userId",
-                         "miles_walked" as "milesWalked",
-                         "encounters",
-                         "time_walked" as "timeWalked",
-                         "created_at" as "createdAt"
+              returning  user_id as "userId",
+                         miles_walked as "milesWalked",
+                         encounters,
+                         time_walked as "timeWalked",
+                         created_at as "createdAt"
             `;
   if (userId > 0) {
     const sql = `
-      select  "user_id" as "userId",
-              "miles_walked" as "milesWalked",
-              "encounters",
-              "time_walked" as "timeWalked",
-              "created_at" as "createdAt"
-        from  "users"
-       where  "user_id" = $1
+      select  user_id as "userId",
+              miles_walked as "milesWalked",
+              encounters,
+              time_walked as "timeWalked",
+              created_at as "createdAt"
+        from  users
+       where  user_id = $1
   `;
     const params = [userId];
     db.query(sql, params)
@@ -47,6 +47,8 @@ app.get('/api/users', (req, res, next) => {
             })
             .catch(err => next(err));
         } else {
+          req.session.cookie.expires = new Date(Date.now() + 315360000000);
+          req.session.cookie.maxAge = 315360000000;
           return res.status(202).json(result.rows[0]);
         }
       })
@@ -54,6 +56,8 @@ app.get('/api/users', (req, res, next) => {
   } else {
     db.query(newUser)
       .then(result => {
+        req.session.cookie.expires = new Date(Date.now() + 315360000000);
+        req.session.cookie.maxAge = 315360000000;
         req.session.pokefitUserId = result.rows[0].userId;
         return res.status(200).json(result.rows[0]);
       })
@@ -64,38 +68,21 @@ app.get('/api/users', (req, res, next) => {
 app.put('/api/users', (req, res, next) => {
   const milesWalked = req.body.milesWalked;
   const encounters = req.body.encounters;
-  const userId = req.session.pokefitUserId;
+  const userId = req.body.userId;
   const timeWalked = req.body.timeWalked;
-  if (!milesWalked) {
-    return res.status(400).json({ error: 'miles_walked required' });
-  }
-  if (!encounters) {
-    return res.status(400).json({ error: 'encounters required' });
-  }
-  if (!userId) {
-    return res.status(400).json({ error: 'how did this happen sir. userId required, restart app' });
-  }
   const sql = `
-       update  "users"
-          set  "miles_walked" = $2,
-               "encounters" = $3,
-               "time_walked" = $4
-        where  "user_id" = $1
-    returning  "user_id" as "userId",
-               "miles_walked" as "milesWalked",
-               "time_walked" as "timeWalked",
-               "encounters",
-               "updated_at" as "updatedAt"
-  `;
+       update  users
+          set  miles_walked = $2,
+               encounters = $3,
+               time_walked = $4
+        where  user_id = $1
+      `;
   const params = [userId, milesWalked, encounters, timeWalked];
   db.query(sql, params)
     .then(result => {
-      if (!req.session.pokefitUserId) {
-        req.session.pokefitUserId = result.rows[0].userId;
-      }
       req.session.cookie.expires = new Date(Date.now() + 315360000000);
       req.session.cookie.maxAge = 315360000000;
-      return res.status(200).json(result.rows[0]);
+      return res.status(200).json({ message: 'update success' });
     })
     .catch(err => {
       console.error(err);

@@ -8,6 +8,8 @@ export default class HomePage extends React.Component {
     if (this.props.timeOfDay === 'midnight' || this.props.timeOfDay === 'night') {
       nightLetters = 'night-letters';
     }
+    let milesWalked = s.milesWalked;
+    isNaN(milesWalked) ? milesWalked = 0 : milesWalked = (s.milesWalked / 100).toFixed(2);
     return (
       <>
         <div className="main-background" style={{ backgroundImage: `url(${this.props.backgroundImage})` }}>
@@ -25,7 +27,7 @@ export default class HomePage extends React.Component {
             <div className={'stats-board'}>
               <div className="stats-text">
                 <p>MILES WALKED</p>
-                <p>{(s.milesWalked / 100).toFixed(2)}</p>
+                <p>{milesWalked}</p>
               </div>
               <div className="stats-text">
                 <p>POKéBOX</p>

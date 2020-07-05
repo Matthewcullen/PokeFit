@@ -107,6 +107,7 @@ export default class App extends React.Component {
           this.getEncounter();
         }
       }
+      this.getStats();
     }, 30000);
   }
 

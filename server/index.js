@@ -14,17 +14,7 @@ app.use(sessionMiddleware);
 app.use(express.json());
 
 app.get('/api/users', (req, res, next) => {
-  const userId = req.session.pokefitUserId;
-  const newUser = `
-            insert into  users (miles_walked, encounters, time_walked)
-                values   (0, 0, 0)
-              returning  user_id as "userId",
-                         miles_walked as "milesWalked",
-                         encounters,
-                         time_walked as "timeWalked",
-                         created_at as "createdAt"
-            `;
-  if (userId > 0) {
+  if (req.session.pokefitUserId) {
     const sql = `
       select  user_id as "userId",
               miles_walked as "milesWalked",
@@ -34,26 +24,22 @@ app.get('/api/users', (req, res, next) => {
         from  users
        where  user_id = $1
   `;
-    const params = [userId];
+    const params = [req.session.pokefitUserId];
     db.query(sql, params)
       .then(result => {
-        if (result.rows.length < 1) {
-          db.query(newUser)
-            .then(result2 => {
-              if (result2.rows.length > 0) {
-                req.session.pokefitUserId = result2.rows[0].userId;
-                return res.status(200).result.rows[0];
-              }
-            })
-            .catch(err => next(err));
-        } else {
-          req.session.cookie.expires = new Date(Date.now() + 315360000000);
-          req.session.cookie.maxAge = 315360000000;
-          return res.status(202).json(result.rows[0]);
-        }
+        return res.status(202).json(result.rows[0]);
       })
       .catch(err => next(err));
   } else {
+    const newUser = `
+            insert into  users (miles_walked, encounters, time_walked)
+                values   (0, 0, 0)
+              returning  user_id as "userId",
+                         miles_walked as "milesWalked",
+                         encounters,
+                         time_walked as "timeWalked",
+                         created_at as "createdAt"
+            `;
     db.query(newUser)
       .then(result => {
         req.session.cookie.expires = new Date(Date.now() + 315360000000);

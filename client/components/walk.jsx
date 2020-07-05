@@ -30,7 +30,7 @@ export default class Walk extends React.Component {
             <div className="stats">
               <div className="stats-text stats-text-walk-screen">
                 <div className="stats-label">MILES WALKED: </div>
-                <div className="stats-number">{this.props.currMilesWalked.toFixed(2)} </div>
+                <div className="stats-number">{(this.props.currMilesWalked / 10000).toFixed(2)} </div>
               </div>
               <div className="stats-text stats-text-walk-screen">
                 <div className="stats-label">ENCOUNTERS: </div>

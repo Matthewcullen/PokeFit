@@ -9,7 +9,7 @@ export default class HomePage extends React.Component {
       nightLetters = 'night-letters';
     }
     let milesWalked = s.milesWalked;
-    isNaN(milesWalked) ? milesWalked = 0 : milesWalked = (s.milesWalked / 100).toFixed(2);
+    isNaN(milesWalked) ? milesWalked = 0 : milesWalked = (s.milesWalked / 10000).toFixed(2);
     return (
       <>
         <div className="main-background" style={{ backgroundImage: `url(${this.props.backgroundImage})` }}>

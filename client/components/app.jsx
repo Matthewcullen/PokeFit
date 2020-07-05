@@ -107,6 +107,7 @@ export default class App extends React.Component {
           this.getEncounter();
         }
       }
+      this.getStats();
     }, 30000);
   }
 
@@ -238,17 +239,17 @@ export default class App extends React.Component {
     }
     distance = Math.acos(distance);
     distance = distance * 180 / Math.PI;
-    distance = distance * 60 * 1.1515;
+    distance = distance * 60 * 11515;
     this.setState({ currMilesWalked: this.state.currMilesWalked + distance, startLat: this.state.currLat, startLon: this.state.currLon });
     this.setState(prevState => ({
       stats: {
         ...prevState.stats,
-        milesWalked: this.state.stats.milesWalked + this.state.currMilesWalked
+        milesWalked: this.state.stats.milesWalked + distance
       }
     }));
     const sendStats = {
       ...this.state.stats,
-      milesWalked: this.state.stats.milesWalked.toFixed(2) * 100
+      milesWalked: Math.round(this.state.stats.milesWalked)
     };
     fetch('/api/users', {
       method: 'PUT',
@@ -358,7 +359,7 @@ export default class App extends React.Component {
   getStats() {
     fetch('/api/users')
       .then(res => res.json())
-      .then(stats => this.setState({ stats }))
+      .then(stats => this.setState({ stats: stats }))
       .catch(err => console.error(err.message));
   }
 
@@ -599,6 +600,7 @@ export default class App extends React.Component {
           <div className="background-container" >
             <Header
               setView={this.setView}
+              getStats={this.getStats}
               resetState={this.resetState}/>
             {modal}
             {display}

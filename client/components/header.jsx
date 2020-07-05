@@ -8,6 +8,7 @@ export default class Header extends React.Component {
           onClick={() => {
             this.props.setView('home');
             this.props.resetState();
+            this.props.getStats();
           }
           }/>
         <div className="right-side-buttons">

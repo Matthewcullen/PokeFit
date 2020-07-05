@@ -32,6 +32,7 @@ export default class App extends React.Component {
       currLon: null,
       currMilesWalked: 0,
       sessionTimeWalked: 0,
+      encounterDistance: 0,
       locationError: null,
       backgroundImage: null,
       timeOfDay: null,
@@ -103,12 +104,12 @@ export default class App extends React.Component {
       const sessionTimeWalked = Math.round((currentTime - startTime) / 60000);
       this.setState({ sessionTimeWalked });
       if (!this.state.encounterType) {
-        if (this.state.sessionTimeWalked % 3 === 0) {
+        if (this.state.sessionTimeWalked % 3 === 0 || this.state.encounterDistance > 2000) {
           this.getEncounter();
         }
       }
       this.getStats();
-    }, 30000);
+    }, 10000);
   }
 
   shuffle(array) {
@@ -130,7 +131,7 @@ export default class App extends React.Component {
     const thisEncounterType = encounterOptions.pop();
     const quantity = Math.floor(Math.random() * 5) + 1;
     const itemOptions = Math.floor(Math.random() * 26) + 1;
-    this.setState({ totalEncounters: this.state.totalEncounters + 1 });
+    this.setState({ totalEncounters: this.state.totalEncounters + 1, encounterDistance: 0 });
     if (thisEncounterType === 'item') {
       fetch(`/api/items/${itemOptions}`)
         .then(res => res.json())
@@ -240,7 +241,7 @@ export default class App extends React.Component {
     distance = Math.acos(distance);
     distance = distance * 180 / Math.PI;
     distance = distance * 60 * 11515;
-    this.setState({ currMilesWalked: this.state.currMilesWalked + distance, startLat: this.state.currLat, startLon: this.state.currLon });
+    this.setState({ currMilesWalked: this.state.currMilesWalked + distance, startLat: this.state.currLat, startLon: this.state.currLon, encounterDistance: this.state.encounterDistance + distance });
     this.setState(prevState => ({
       stats: {
         ...prevState.stats,

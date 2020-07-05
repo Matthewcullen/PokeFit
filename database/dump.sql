@@ -16,9 +16,9 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-DROP TRIGGER set_timestamp ON public.users;
 DROP TRIGGER set_timestamp ON public.pokeboxes;
 DROP TRIGGER set_timestamp ON public.backpack_items;
+DROP TRIGGER give_items ON public.users;
 ALTER TABLE ONLY public.users DROP CONSTRAINT users_pk;
 ALTER TABLE ONLY public.pokemon DROP CONSTRAINT pokemon_v2_pk;
 ALTER TABLE ONLY public.pokeboxes DROP CONSTRAINT pokeboxes_pk;
@@ -37,6 +37,7 @@ DROP TABLE public.items;
 DROP SEQUENCE public.backpack_items_backpack_id_seq;
 DROP TABLE public.backpack_items;
 DROP FUNCTION public.trigger_set_timestamp();
+DROP FUNCTION public.free_items();
 DROP EXTENSION plpgsql;
 DROP SCHEMA public;
 --
@@ -68,6 +69,25 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
 --
+-- Name: free_items(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.free_items() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+INSERT INTO
+backpack_items(user_id, item_id, quantity)
+VALUES(new.user_id, 4, 20),
+(new.user_id, 3, 15),
+(new.user_id, 18, 10),
+(new.user_id, 22, 10);
+RETURN new;
+END;
+$$;
+
+
+--
 -- Name: trigger_set_timestamp(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -75,8 +95,8 @@ CREATE FUNCTION public.trigger_set_timestamp() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  NEW."updated_at" = NOW();
-  RETURN NEW;
+NEW.updated_at = NOW();
+RETURN NEW;
 END;
 $$;
 
@@ -130,7 +150,7 @@ CREATE TABLE public.items (
     item_short_desc character varying(255) NOT NULL,
     item_long_desc character varying(255) NOT NULL,
     item_eff_desc text NOT NULL,
-    sprite character varying(255) NOT NULL,
+    sprite character varying(87) NOT NULL,
     effect smallint
 );
 
@@ -147,7 +167,7 @@ CREATE TABLE public.pokeboxes (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     is_shiny boolean,
-    ball_sprite text,
+    ball_sprite character varying(87),
     item_id smallint NOT NULL
 );
 
@@ -538,6 +558,13 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: users give_items; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER give_items AFTER INSERT ON public.users FOR EACH ROW EXECUTE PROCEDURE public.free_items();
+
+
+--
 -- Name: backpack_items set_timestamp; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -549,13 +576,6 @@ CREATE TRIGGER set_timestamp BEFORE UPDATE ON public.backpack_items FOR EACH ROW
 --
 
 CREATE TRIGGER set_timestamp BEFORE UPDATE ON public.pokeboxes FOR EACH ROW EXECUTE PROCEDURE public.trigger_set_timestamp();
-
-
---
--- Name: users set_timestamp; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER set_timestamp BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.trigger_set_timestamp();
 
 
 --

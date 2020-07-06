@@ -241,12 +241,15 @@ export default class App extends React.Component {
     distance = Math.acos(distance);
     distance = distance * 180 / Math.PI;
     distance = distance * 60 * 11515;
-    this.setState({ currMilesWalked: this.state.currMilesWalked + distance, startLat: this.state.currLat, startLon: this.state.currLon, encounterDistance: this.state.encounterDistance + distance });
     this.setState(prevState => ({
       stats: {
         ...prevState.stats,
         milesWalked: this.state.stats.milesWalked + distance
-      }
+      },
+      currMilesWalked: this.state.currMilesWalked + distance,
+      startLat: this.state.currLat,
+      startLon: this.state.currLon,
+      encounterDistance: this.state.encounterDistance + distance
     }));
     const sendStats = {
       ...this.state.stats,

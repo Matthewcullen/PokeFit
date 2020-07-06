@@ -78,7 +78,8 @@ CREATE FUNCTION public.free_items() RETURNS trigger
 BEGIN
 INSERT INTO
 backpack_items(user_id, item_id, quantity)
-VALUES(new.user_id, 4, 20),
+VALUES
+(new.user_id, 4, 20),
 (new.user_id, 3, 15),
 (new.user_id, 18, 10),
 (new.user_id, 22, 10);
@@ -588,4 +589,3 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 --
 -- PostgreSQL database dump complete
 --
-

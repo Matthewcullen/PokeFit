@@ -13,7 +13,8 @@ export default class Walk extends React.Component {
     let am = 'AM';
     if (hours < 10) { hours = '0' + hours; }
     if (minutes < 10) { minutes = '0' + minutes; }
-    if (hours > 12) { hours = hours - 12; am = 'PM'; }
+    if (hours >= 12) { hours = hours - 12; am = 'PM'; }
+    if (hours === '00') { hours = 12; }
     return (
       <div className="pokedex-body">
         <div className="pokedex-screen-container">

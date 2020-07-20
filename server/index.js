@@ -79,34 +79,15 @@ app.put('/api/users', (req, res, next) => {
 app.get('/api/pokeboxes', (req, res, next) => {
   const userId = req.session.pokefitUserId;
   const sql = `
-    select  "pb"."pokebox_id" as "pokeboxId",
-            "pb"."name",
-            "pb"."ball_sprite" as "ballSprite",
-            "pb"."item_id" as "itemId",
-            "p"."type",
-            "p"."type_secondary" as "typeSecondary",
-            "p"."height",
-            "p"."habitat",
-            "p"."weight",
-            "p"."sprite_front_default" as "spriteFrontDefault",
-            "p"."sprite_back_default" as "spriteBackDefault",
-            "p"."sprite_front_shiny" as "spriteFrontShiny",
-            "p"."sprite_back_shiny" as "spriteBackShiny",
-            "p"."flavor_text" as "flavorText",
-            "p"."flavor_text_new" as "flavorTextNew",
-            "p"."growth_rate" as "growthRate",
-            "p"."species",
-            "pb"."is_shiny" as "isShiny",
-            "pb"."created_at" as "createdAt",
-            "pb"."user_id" as "userId"
+    select  *
       from  "pokeboxes" as "pb"
-      join  "pokemon" as "p" using ("pokemon_id")
+      join  "pokemon" as "p" using ("pokemonId")
      where  "user_id" = $1
   `;
   const params = [userId];
   db.query(sql, params)
     .then(result => {
-      return res.status(201).json(result.rows);
+      return res.status(200).json(result.rows);
     })
     .catch(err => {
       console.error(err);
